@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Generation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        form, ul {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        select {
+            background-color: #f3f3f3;
+        }
+        button[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            border-radius: 3px;
+            background-color: #f9f9f9;
+        }
+        img {
+            max-width: 200px;
+            height: auto;
+            margin-right: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        select {
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generate Images</h1>
+    <form action="{% url '' %}" method="post">
+        {% csrf_token %}
+        <label for="prompt">Enter a Prompt:</label>
+        <input type="text" id="prompt" name="prompt" required>
+        
+        <label for="count">Enter Count:</label>
+        <input type="text" id="count" name="count" required>
+
+        <button type="submit">Generate</button>
+    </form>
+    
+
+    <h1>Images</h1>
+    <ul>
+        {% for url in urls %}
+            <li>
+                <div style="display: flex; align-items: center;">
+                    <img src="{{ url }}" alt="Image">
+                    <form action="{% url 'download' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="url" value="{{ url }}">
+                        <label for="dimensions">Select Image Dimensions:</label>
+                        <select id="image-dimensions" name="dimensions">
+                            <option value="1080x1080">1080 x 1080</option>
+                            <option value="1080x1920">1080 x 1920</option>
+                            <option value="1200x628">1200 x 628</option>
+                        </select>
+                
+                        <button type="submit" onclick="showAlert()">Download</button>
+                    </form>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        function showAlert() {
+            var selectedDimension = document.getElementById('image-dimensions').value;
+            alert('The download has started');
+            // Optionally, you can trigger the form submission here if the user clicks "OK"
+            // document.querySelector('form').submit();
+        }
+    </script>
+</body>
+</html>
