@@ -5,18 +5,14 @@ from datetime import datetime
 import cv2
 import numpy as np
 import urllib
+import concurrent.futures
 from django.http import HttpResponse
-
-
-# Create your views here.
 
 def get_images(request):
     openai.api_key = "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"
     urls = []
     if request.method == "POST":
         image_count = int(request.POST.get('count'))
-
-        dimension = request.POST.get('dimensions')
 
         prompt = request.POST.get('prompt')
         remaining_images_count = image_count % 10
@@ -28,7 +24,6 @@ def get_images(request):
 
         if remaining_images_count > 0:
             urls.append(request_dall_e(prompt, remaining_images_count))
-            
         context = {
             'urls': [url for sublist in urls for url in sublist]
         }
@@ -58,9 +53,12 @@ def download_image(request):
         resp = urllib.request.urlopen(image_url)
         image = np.asarray(bytearray(resp.read()), dtype="uint8")
         image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-
         resized_image = cv2.resize(image, (int(height), int(width)))
-        cv2.imwrite("./downloads/" + str(file_name) + ".jpg", resized_image)
-        return HttpResponse("The image downloaded successfully and it is in downloads folder of current directory", content_type="text/plain")
+        _, image_data = cv2.imencode('.jpg', resized_image)
+        image_bytes = image_data.tobytes()
+
+        response = HttpResponse(image_bytes, content_type='image/jpeg')
+        response['Content-Disposition'] = f'attachment; filename='+ file_name +'.jpg'
+        return response
     else:
         return HttpResponse("Unable to download", content_type="text/plain")
