@@ -88,20 +88,43 @@
     </style>
 </head>
 <body>
-    <h1>Generate Images</h1>
-    <form action="{% url '' %}" method="post">
-        {% csrf_token %}
-        <label for="prompt">Enter a Prompt:</label>
-        <input type="text" id="prompt" name="prompt" required>
-        
-        <label for="count">Enter Count:</label>
-        <input type="text" id="count" name="count" required>
+    <!-- <h1>Generate Images</h1> -->
+    <div style="display: flex;">
 
-        <button type="submit">Generate</button>
-    </form>
+        <!-- <div>
+            <form action="{% url '' %}" method="post">
+                {% csrf_token %}
+                <label for="prompt">Enter a Prompt:</label>
+                <input type="text" id="prompt" name="prompt" required>
+                
+                <label for="count">Enter Count:</label>
+                <input type="text" id="count" name="count" required>
+        
+                <button type="submit">Generate</button>
+            </form>
+        </div> -->
+
+        <div>
+            <form action="{% url 'upload' %}" method="post">
+                {% csrf_token %}
+                <!-- <input type="hidden" name="url" value="{{ url }}"> -->
+                <!-- <label for="dimensions">Download images</label> -->
+                <!-- <select id="image-dimensions" name="dimensions">
+                    <option value="1">1080 x 1080</option>
+                    <option value="2">1080 x 566</option>
+                    <option value="3">1080 x 1350</option>
+                    <option value="4">1080 x 1920</option>
+                </select> -->
+                <button type="submit" onclick="showAlert()">Resize images</button>
+            </form>
+        </div>
+
+
+    </div>
+    
     
 
-    <h1>Images</h1>
+    <!-- <h1>Images</h1> -->
     <ul>
         {% for url in urls %}
             <li>
