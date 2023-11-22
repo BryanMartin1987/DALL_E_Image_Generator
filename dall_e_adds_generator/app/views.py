@@ -1,60 +1,66 @@
 from django.shortcuts import render
 import openai
 import os
+import os
+from multiprocessing import Process, Manager
 from datetime import datetime
 import cv2
 import numpy as np
 import urllib
-import time
-import concurrent.futures
 from django.http import HttpResponse
+openai.api_key = "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"
 
 def get_images(request):
-    openai.api_key = "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"
+    
     urls = []
     if request.method == "POST":
         image_count = int(request.POST.get('count'))
 
         prompt = request.POST.get('prompt')
-        remaining_images_count = image_count % 10
 
-        loop_count = int(image_count/10)
+        size = request.POST.get('size')
+        
+        # num_cores = os.cpu_count()
 
-        for _ in range(loop_count):
-            urls.append(request_dall_e(prompt, number_of_images= 10))
+        with Manager() as manager:
+            urls = manager.list()
+            processes = []
 
-        if remaining_images_count > 0:
-            urls.append(request_dall_e(prompt, remaining_images_count))
-        context = {
-            'urls': [url for sublist in urls for url in sublist]
-        }
-        return render(request, 'home.html', context)
-    
+            for _ in range(image_count):
+                p = Process(target=request_dall_e, args=(prompt, urls, size))
+                p.start()
+                processes.append(p)
+
+            for p in processes:
+                p.join()
+            # 03451456476
+            context = {
+                'urls': [url for url in urls]
+            }
+            return render(request, 'home.html', context)
     else:
         return render(request, 'home.html')
 
-def request_dall_e(prompt, number_of_images):
+def request_dall_e(prompt, urls, size):
     response = openai.Image.create(
+    model="dall-e-3",
     prompt=prompt,
-    n=number_of_images,
-    size="1024x1024"
+    n=1,
+    size=size,
+    quality="standard"
     )
-    urls = []
-    for i in response['data']:
-        urls.append(i['url'])
 
-    return urls
+    url = response['data'][0]['url']
+    urls.append(url)
 
 def download_image(request):
     if  request.method == "POST":
         file_name =  datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         image_url = request.POST.get('url')
-        dimension = request.POST.get('dimensions')
-        height, width = dimension.split('x')
         resp = urllib.request.urlopen(image_url)
         image = np.asarray(bytearray(resp.read()), dtype="uint8")
         image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-        resized_image = cv2.resize(image, (int(height), int(width)))
+        resized_image = adjust_size(image)
         _, image_data = cv2.imencode('.jpg', resized_image)
         image_bytes = image_data.tobytes()
 
@@ -77,7 +83,15 @@ def upload_image(request):
     for image_path in image_files:
         image = cv2.imread(image_path)
 
-        if image is not None:
+        resized_image = adjust_size(image)
+
+        cv2.imwrite('./downloads/' + name[i] + '.jpg', resized_image)
+            
+        i = i + 1
+    return HttpResponse("Images are downloaded and saved in downloads folder in the project", content_type="text/plain")
+
+def adjust_size(image):
+    if image is not None:
             shapes = image.shape
             
             ratio = shapes[1] / shapes[0]
@@ -85,22 +99,17 @@ def upload_image(request):
             if ratio == 1:
                 resized_image = cv2.resize(image, (1080, 1080))
             
-            if round(ratio, 2) > 1.8 and ratio < 2:
+            elif round(ratio, 2) > 1.7 and ratio < 2.1:
                 resized_image = cv2.resize(image, (1080, 566))
             
-            if ratio > 0.75 and ratio < 1:
+            elif ratio > 0.7 and ratio < 1.2:
                 resized_image = cv2.resize(image, (1080, 1350))
             
-            if ratio > 0.45 and ratio < 0.65:
+            elif ratio > 0.35 and ratio < 0.71:
                 resized_image = cv2.resize(image, (1080, 1920))
-
-            cv2.imwrite('./downloads/' + name[i] + '.jpg', resized_image)
-            
-        else:
-            continue
-        i = i + 1
-    return HttpResponse("Images are downloaded and saved in downloads folder in the project", content_type="text/plain")
-
+            else:
+                resized_image = image
+            return resized_image
 
 # def testing(request):
 #     directory_path ="./uploads"
