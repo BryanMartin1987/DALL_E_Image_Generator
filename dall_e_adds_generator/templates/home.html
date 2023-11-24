@@ -14,17 +14,19 @@
             color: #333;
             margin-bottom: 20px;
         }
-        form, ul {
-            max-width: 600px;
+        .container {
+            max-width: 800px;
             margin: 0 auto;
+        }
+        form {
             background-color: #fff;
             padding: 20px;
             border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             font-weight: bold;
         }
         input[type="text"],
@@ -34,119 +36,121 @@
             margin-bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 3px;
+            box-sizing: border-box;
         }
         select {
             background-color: #f3f3f3;
         }
         button[type="submit"] {
-            background-color: #007bff;
+            background-color: #333;
             color: #fff;
             padding: 10px 20px;
             border: none;
             border-radius: 3px;
+            display: block;
+            margin-top: 2px;
             cursor: pointer;
-        }
-        button[type="submit"]:hover {
-            background-color: #0056b3;
+            background-color: #555;
         }
         ul {
             list-style: none;
             padding: 0;
-        }
-        li {
             display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            border: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+        .error {
+            color: #fff;
+            background-color: #ff6666;
             padding: 10px;
-            border-radius: 3px;
-            background-color: #f9f9f9;
-        }
-        img {
-            max-width: 200px;
-            height: auto;
-            margin-right: 20px;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        select {
+            border-radius: 5px;
             margin-bottom: 10px;
         }
-        button {
-            background-color: #007bff;
+        li {
+            margin-bottom: 20px;
+            width: calc(30% - 20px);
+            position: relative;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        form {
+            position: relative;
+            bottom: 10px;
+            right: 10px;
+            background-color: transparent;
+            transition: background-color 0.3s ease;
+        }
+        form button {
+            background-color: transparent;
             color: #fff;
             padding: 5px 10px;
             border: none;
             border-radius: 3px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: none;
         }
-        button:hover {
-            background-color: #0056b3;
+        li:hover form button {
+            display: block;
+        }
+        form button:hover {
+            background-color: rgba(0, 123, 255, 0.7);
         }
     </style>
 </head>
 <body>
-    <h1>Generate Images</h1>
-    <div>
+        <h1>Generate Images</h1>
+        <div class="container">
+            <div>
+                <form style="background-color: whitesmoke;" action="{% url '' %}" method="post">
+                    {% csrf_token %}
+                    <label for="prompt">Enter a Prompt:</label>
+                    <input type="text" id="prompt" name="prompt" required>
+                    
+                    <label for="count">Enter Count:</label>
+                    <input type="text" id="count" name="count" required>
 
-        <div>
-            <form action="{% url '' %}" method="post">
-                {% csrf_token %}
-                <label for="prompt">Enter a Prompt:</label>
-                <input type="text" id="prompt" name="prompt" required>
-                
-                <label for="count">Enter Count:</label>
-                <input type="text" id="count" name="count" required>
-
-                <select id="image-dimensions" name="size">
-                    <option value="1792x1024">1792 x 1024</option>
-                    <option value="1024x1024">1024 x 1024</option>
-                    <option value="1024x1792">1024 x 1792</option>
-                </select>
-        
-                <button type="submit">Generate</button>
-            </form>
+                    <select id="image-dimensions" name="size">
+                        <option value="1792x1024">1792 x 1024</option>
+                        <option value="1024x1024">1024 x 1024</option>
+                        <option value="1024x1792">1024 x 1792</option>
+                    </select>
+            
+                    <button type="submit">Generate</button>
+                </form>
+            </div>
         </div>
 
-        <div>
-            <form action="{% url 'upload' %}" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="url" value="{{ url }}">
-                <button type="submit" onclick="showAlert()">Resize images</button>
-            </form>
-        </div>
-    </div>
-    
-    
-
-    <h1>Images</h1>
-    <ul>
-        {% for url in urls %}
-            <li>
-                <div style="display: flex; align-items: center;">
+        <h1>Images</h1>
+        <ul>
+            {% for url in urls %}
+                <li>
                     <img src="{{ url }}" alt="Image">
                     <form action="{% url 'download' %}" method="post">
                         {% csrf_token %}
                         <input type="hidden" name="url" value="{{ url }}">
-                        <label for="dimensions">Select Image Dimensions:</label>
-                        <select id="image-dimensions" name="dimensions">
-                            <option value="1080x1080">1080 x 1080</option>
-                            <option value="1080x1920">1080 x 1920</option>
-                            <option value="1200x628">1200 x 628</option>
-                        </select>
-                
                         <button type="submit" onclick="showAlert()">Download</button>
                     </form>
-                </div>
-            </li>
-        {% endfor %}
-    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <ul>
+            {% for error in errors %}
+                <li class = "error">
+                    {{error}}
+                </li>
+            {% endfor %}
+        </ul>
+    
 
     <script>
         function showAlert() {
-            var selectedDimension = document.getElementById('image-dimensions').value;
             alert('The download has started');
         }
     </script>

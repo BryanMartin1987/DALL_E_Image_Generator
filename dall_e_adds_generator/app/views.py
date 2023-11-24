@@ -1,5 +1,5 @@
 from django.shortcuts import render
-import openai
+from openai import OpenAI
 import os
 import os
 from multiprocessing import Process, Manager
@@ -8,7 +8,8 @@ import cv2
 import numpy as np
 import urllib
 from django.http import HttpResponse
-openai.api_key = "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"
+client = OpenAI()
+client.api_key = "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"
 
 def get_images(request):
     
@@ -16,11 +17,15 @@ def get_images(request):
     if request.method == "POST":
         image_count = int(request.POST.get('count'))
 
+        if image_count > 15:
+            context = {
+                'errors': ['you cant send more than 15 requests images in one call']
+            }
+            return render(request, 'home.html', context)
+
         prompt = request.POST.get('prompt')
 
         size = request.POST.get('size')
-        
-        # num_cores = os.cpu_count()
 
         with Manager() as manager:
             urls = manager.list()
@@ -42,7 +47,7 @@ def get_images(request):
         return render(request, 'home.html')
 
 def request_dall_e(prompt, urls, size):
-    response = openai.Image.create(
+    response = client.images.generate(
     model="dall-e-3",
     prompt=prompt,
     n=1,
@@ -50,7 +55,7 @@ def request_dall_e(prompt, urls, size):
     quality="standard"
     )
 
-    url = response['data'][0]['url']
+    url = response.data[0].url
     urls.append(url)
 
 def download_image(request):
@@ -61,7 +66,7 @@ def download_image(request):
         image = np.asarray(bytearray(resp.read()), dtype="uint8")
         image = cv2.imdecode(image, cv2.IMREAD_COLOR)
         resized_image = adjust_size(image)
-        _, image_data = cv2.imencode('.jpg', resized_image)
+        _, image_data = cv2.imencode('.png', resized_image)
         image_bytes = image_data.tobytes()
 
         response = HttpResponse(image_bytes, content_type='image/jpeg')
