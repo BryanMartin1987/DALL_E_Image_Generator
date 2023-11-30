@@ -101,12 +101,26 @@
         form button:hover {
             background-color: rgba(0, 123, 255, 0.7);
         }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: #fff;
+            border: 1px solid #dc3545;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            color: #fff;
+            border: 1px solid #c82333;
+        }
     </style>
 </head>
 <body>
+    <a style="float: right;" href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
         <h1>Generate Images</h1>
         <div class="container">
             <div>
+               
                 <form style="background-color: whitesmoke;" action="{% url '' %}" method="post">
                     {% csrf_token %}
                     <label for="prompt">Enter a Prompt:</label>

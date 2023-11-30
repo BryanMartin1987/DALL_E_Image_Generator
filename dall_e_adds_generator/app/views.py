@@ -7,12 +7,15 @@ from datetime import datetime
 import cv2
 import numpy as np
 import urllib
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 client = OpenAI()
 client.api_key = "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"
 
-def get_images(request):
-    
+@login_required(login_url='/admin')
+def get_images(request): 
     urls = []
     if request.method == "POST":
         image_count = int(request.POST.get('count'))
@@ -38,7 +41,7 @@ def get_images(request):
 
             for p in processes:
                 p.join()
-            # 03451456476
+
             context = {
                 'urls': [url for url in urls]
             }
@@ -140,3 +143,7 @@ def adjust_size(image):
 #             cv2.imwrite('./uploads/' + resolution + name[i]+ '.jpg', resized_image)
 #         i = i + 1
 #     return HttpResponse("Unable to download", content_type="text/plain")
+
+def logout_view(request):
+    logout(request)
+    return redirect("")
