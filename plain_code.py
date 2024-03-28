@@ -3,7 +3,7 @@ import numpy as np
 import urllib
 import openai
 
-openai.api_key = "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"
+openai.api_key = "openaikey"
 
 prompt = input("input a prompt")
 height = input("Enter output height")
