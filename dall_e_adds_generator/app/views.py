@@ -12,7 +12,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 client = OpenAI()
-client.api_key = "openaikey"
+client.api_key = "" # Replace with your openai key
 
 @login_required(login_url='/admin')
 def get_images(request): 
