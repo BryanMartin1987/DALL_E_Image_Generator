@@ -2,7 +2,7 @@ import os
 from multiprocessing import Process, Manager
 import openai
 
-openai.api_key = "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"
+openai.api_key = "" # add your own key
 
 def func1(a, b, results):
     response = openai.Image.create(
