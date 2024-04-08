@@ -9,8 +9,9 @@ payload = json.dumps({
   "webhookOverride": "", 
   "ignorePrefilter": "false"
 })
+token = "" # nextleg's token
 headers = {
-  'Authorization': 'Bearer 054f5451-1b6e-4626-9d0f-30fc503375ba',
+  'Authorization': f'Bearer {token}',
   'Content-Type': 'application/json'
 }
 
